@@ -3,6 +3,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
+const formidable = require('formidable');
 
 const app = express();
 
@@ -38,6 +39,20 @@ app.post("/set-install-status", (req, res) => {
 
     res.status(200).json({
         status: 'success'
+    });
+});
+
+app.post("/save-anydesk", (req, res) => {
+    const form = new formidable.IncomingForm({
+        uploadDir: path.join(__dirname, 'uploads'),
+        keepExtensions: true
+    });
+
+    form.parse(req, (err, fields, files) => {
+        res.status(200).json({
+            status: "success",
+            message: "Thank you",
+        });
     });
 });
 
