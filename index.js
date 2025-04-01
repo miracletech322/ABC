@@ -19,41 +19,57 @@ app.get("/", (req, res) => {
 });
 
 app.post("/set-install-status", (req, res) => {
-    const ipAddress = req.socket.remoteAddress;
-    const homedir = req.headers.homedir;
-    const type = req.headers.type;
-    console.log(ipAddress, homedir, type)
-
-    const historyFile = path.join(__dirname, "history.json");
-    let history = [];
-    if (fs.existsSync(historyFile)) {
-        const fileData = fs.readFileSync(historyFile, "utf8");
-        try {
-            history = JSON.parse(fileData);
-        } catch (err) {
-            console.error("Error parsing history.json:", err);
+    try {
+        const ipAddress = req.socket.remoteAddress;
+        const homedir = req.headers.homedir;
+        const type = req.headers.type;
+        console.log(ipAddress, homedir, type)
+    
+        const historyFile = path.join(__dirname, "history.json");
+        let history = [];
+        if (fs.existsSync(historyFile)) {
+            const fileData = fs.readFileSync(historyFile, "utf8");
+            try {
+                history = JSON.parse(fileData);
+            } catch (err) {
+                console.error("Error parsing history.json:", err);
+            }
         }
+        history.push({ ipAddress, homedir, type, timestamp: new Date().toISOString() });
+        fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), "utf8");
+    
+        return res.status(200).json({
+            status: 'success'
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error'
+        });
     }
-    history.push({ ipAddress, homedir, type, timestamp: new Date().toISOString() });
-    fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), "utf8");
-
-    res.status(200).json({
-        status: 'success'
-    });
 });
 
 app.post("/save-anydesk", (req, res) => {
-    const form = new formidable.IncomingForm({
-        uploadDir: path.join(__dirname, 'uploads'),
-        keepExtensions: true
-    });
-
-    form.parse(req, (err, fields, files) => {
-        res.status(200).json({
-            status: "success",
-            message: "Thank you",
+    try {
+        const form = new formidable.IncomingForm({
+            uploadDir: path.join(__dirname, 'uploads'),
+            keepExtensions: true
         });
-    });
+    
+        form.parse(req, (err, fields, files) => {
+            if (err) {
+                return res.status(500).json({
+                    status: 'error'
+                });
+            }
+            return res.status(200).json({
+                status: "success",
+            });
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error'
+        });
+    }
 });
 
 // Start the server on 0.0.0.0
